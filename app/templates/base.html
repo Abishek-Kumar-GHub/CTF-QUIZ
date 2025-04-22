@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTF Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <style>
+      /* Navbar Styles */
+      nav {
+          background-color: #007bff; /* Blue */
+          color: #fff;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 20px;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      nav a {
+          color: #fff;
+          text-decoration: none;
+          margin: 0 15px;
+          font-size: 1.1em;
+          transition: color 0.3s ease;
+      }
+
+      nav a:hover {
+          color: #ff6f00; /* Orange hover */
+      }
+
+      /* Leaderboard Navbar */
+      .leaderboard-navbar {
+          display: none; /* Hide by default */
+      }
+
+      .leaderboard-navbar.active {
+          display: block; /* Show if active */
+      }
+
+      /* Logo */
+      .nav-logo {
+          font-size: 1.8em;
+          color: #ff6f00; /* Orange */
+          font-weight: bold;
+          letter-spacing: 1px;
+      }
+
+      /* Responsive Layout for Navbar */
+      @media (max-width: 768px) {
+          nav {
+              flex-direction: column;
+              align-items: flex-start;
+          }
+
+          nav a {
+              margin: 10px 0;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-logo">
+        <a href="{{ url_for('main.home') }}">CTF</a>
+      </div>
+
+      <div class="nav-links">
+        {% if request.endpoint != 'main.challenges' %}
+          <!-- Show Home and Logout if not on Challenges page -->
+          <a href="{{ url_for('main.home') }}">Home</a>
+        {% endif %}
+
+        {% if current_user.is_authenticated %}
+            {% if first_challenge %}
+                {% if not challenge_completed %}
+                    <!-- If the challenge is not completed, show the challenge link -->
+                    <a href="{{ url_for('main.challenges', challenge_id=first_challenge.id) }}">Challenges</a>
+                {% else %}
+                    <!-- If the challenge is completed, show the leaderboard -->
+                    <div class="leaderboard-navbar active">
+                        <a href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            {% if request.endpoint != 'main.challenges' %}
+                <a href="{{ url_for('main.logout') }}">Logout</a>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('main.login') }}">Login</a>
+            <a href="{{ url_for('main.register') }}">Register</a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container">
+    <h1>Challenge {{ challenge.id }}</h1>
+
+    <h3>{{ challenge.title }}</h3>
+    <p>{{ challenge.description }}</p>
+
+    <!-- Timer countdown -->
+    <p id="timer">Time Left: 10s</p>
+
+    <form method="POST" action="{{ url_for('main.challenges', challenge_id=challenge.id) }}" id="challenge-form">
+      <input type="hidden" name="challenge_id" value="{{ challenge.id }}" />
+      <input type="hidden" id="remaining_time" name="remaining_time" value="10.0" />
+
+      <!-- MCQ Options -->
+      <label><input type="radio" name="answer" value="option_1" required /> {{ challenge.option_1 }}</label><br />
+      <label><input type="radio" name="answer" value="option_2" required /> {{ challenge.option_2 }}</label><br />
+      <label><input type="radio" name="answer" value="option_3" required /> {{ challenge.option_3 }}</label><br />
+      <label><input type="radio" name="answer" value="option_4" required /> {{ challenge.option_4 }}</label><br />
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    let timeLeft = 10.0
+    let timerInterval
+    
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft = Math.max(timeLeft - 0.1, 0)
+        document.getElementById('timer').innerText = 'Time Left: ' + timeLeft.toFixed(1) + 's'
+        document.getElementById('remaining_time').value = timeLeft.toFixed(1)
+    
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval)
+          autoSubmit()
+        }
+      }, 100)
+    }
+    
+    function autoSubmit() {
+      let selectedAnswer = document.querySelector('input[name="answer"]:checked')
+    
+      if (!selectedAnswer) {
+        alert("Time's up! Moving to the next challenge with a penalty.")
+        applyPenalty()
+        window.location.href = "{{ url_for('main.challenges', challenge_id=challenge.id + 1) }}"
+        return
+      }
+    
+      document.getElementById('challenge-form').submit()
+    }
+    
+    function applyPenalty() {
+      fetch("{{ url_for('main.apply_penalty', challenge_id=challenge.id) }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ deduction: 5.0 }) // Deducting 5 points if unanswered
+      })
+    }
+    
+    // Start the timer after 3 seconds delay
+    setTimeout(() => {
+      startTimer()
+    }, 3000)
+  </script>
+{% endblock %}
